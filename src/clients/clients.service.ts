@@ -12,17 +12,27 @@ export class ClientsService {
     return this.prisma.client.findMany();
   }
 
+  async findOneEmail(email: string): Promise<Client> {
+    const clientDB = this.prisma.client.findUnique({
+      where: { email }
+    });
+
+    if (!clientDB) {
+      throw new BadRequestException('Client with this email does not exist');
+    }
+
+    return clientDB;
+  }
+
   async create(createClientDto: CreateClientDto): Promise<Omit<Client, 'password'>> {
     const { email, password } = createClientDto;
 
     createClientDto.password = bcrypt.hashSync(password, 10);
 
-    const clientDB = await this.prisma.client.findUnique({
-      where: { email }
-    });
+    const clientDB = this.findOneEmail(email);
 
     if (clientDB) {
-      throw new BadRequestException('Client already exists');
+      throw new BadRequestException('Client with this email already exists');
     }
 
     const client = this.prisma.client.create({
