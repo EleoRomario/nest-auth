@@ -7,7 +7,9 @@ export class AuthController {
   constructor(private readonly authService: ClientsService) {}
 
   @Post('register')
-  async register(@Body() createAuthDto: CreateClientDto) {
+  async register(
+    @Body() createAuthDto: CreateClientDto
+  ): Promise<Omit<CreateClientDto, 'password'>> {
     return this.authService.create(createAuthDto);
   }
 }

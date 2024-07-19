@@ -13,7 +13,7 @@ export class ClientsController {
   }
 
   @Post()
-  async create(@Body() createClientDto: CreateClientDto): Promise<Client> {
+  async create(@Body() createClientDto: CreateClientDto): Promise<Omit<Client, 'password'>> {
     return this.clientsService.create(createClientDto);
   }
 }
