@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException
+} from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Client } from '@prisma/client';
@@ -12,31 +17,53 @@ export class ClientsService {
     return this.prisma.client.findMany();
   }
 
-  async findOneEmail(email: string): Promise<Client> {
-    const clientDB = this.prisma.client.findUnique({
+  async checkEmailExists(email: string): Promise<void> {
+    const clientDB = await this.prisma.client.findUnique({
       where: { email }
     });
 
-    if (!clientDB) {
-      throw new BadRequestException('Client with this email does not exist');
+    if (clientDB) {
+      throw new BadRequestException('El cliente con este correo electrónico ya existe');
     }
+  }
 
-    return clientDB;
+  async findOneByEmail(email: string): Promise<Client> {
+    try {
+      const clientDB = await this.prisma.client.findUnique({
+        where: { email }
+      });
+
+      if (!clientDB) {
+        throw new NotFoundException('Correo electrónico no encontrado');
+      }
+
+      return clientDB;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException({
+          message: 'Error al buscar un cliente',
+          error: error.message
+        });
+      }
+    }
   }
 
   async create(createClientDto: CreateClientDto): Promise<Omit<Client, 'password'>> {
     const { email, password } = createClientDto;
 
-    createClientDto.password = bcrypt.hashSync(password, 10);
+    await this.checkEmailExists(email); // Verificar si el email ya existe
 
-    const clientDB = this.findOneEmail(email);
+    // Hash de la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (clientDB) {
-      throw new BadRequestException('Client with this email already exists');
-    }
-
-    const client = this.prisma.client.create({
-      data: createClientDto,
+    // Crear el cliente con la contraseña hasheada
+    const client = await this.prisma.client.create({
+      data: {
+        ...createClientDto,
+        password: hashedPassword
+      },
       select: {
         id: true,
         username: true,

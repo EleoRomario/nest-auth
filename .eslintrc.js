@@ -23,6 +23,8 @@ module.exports = {
       {
         endOfLine: 'auto'
       }
-    ]
+    ],
+    '@typescript-eslint/no-unused-vars': ['error', { argsIgnore 
+    Pattern: '^_' }]
   }
 };
