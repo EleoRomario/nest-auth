@@ -1,8 +1,9 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { CreateClientDto } from 'src/clients/dto/create-client.dto';
 import { AuthService } from './auth.service';
 import { LoginClientDto } from './dto/login-client.dto';
 import { Client } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -18,5 +19,11 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginClientDto): Promise<Omit<Client, 'password'>> {
     return this.authService.login(loginDto);
+  }
+
+  @Get('private')
+  @UseGuards(AuthGuard())
+  testingPrivateRoute() {
+    return 'This is a private route';
   }
 }
