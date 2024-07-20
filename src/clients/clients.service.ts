@@ -17,6 +17,29 @@ export class ClientsService {
     return this.prisma.client.findMany();
   }
 
+  async findOneById(id: string): Promise<Client> {
+    try {
+      const clientDB = await this.prisma.client.findUnique({
+        where: { id }
+      });
+
+      if (!clientDB) {
+        throw new NotFoundException('Cliente no encontrado');
+      }
+
+      return clientDB;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else {
+        throw new InternalServerErrorException({
+          message: 'Error al buscar un cliente',
+          error: error.message
+        });
+      }
+    }
+  }
+
   async checkEmailExists(email: string): Promise<void> {
     const clientDB = await this.prisma.client.findUnique({
       where: { email }

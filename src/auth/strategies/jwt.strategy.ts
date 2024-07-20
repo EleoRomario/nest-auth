@@ -19,11 +19,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<Client> {
-    const { email } = payload;
-    const userDB = await this.clientService.findOneByEmail(email);
+    const { id } = payload;
+    const userDB = await this.clientService.findOneById(id);
 
     if (!userDB) {
-      throw new UnauthorizedException('User with this email does not exist');
+      throw new UnauthorizedException('User not found');
     }
 
     if (!userDB.isActive) {

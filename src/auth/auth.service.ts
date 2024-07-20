@@ -18,7 +18,7 @@ export class AuthService {
     await this.clientService.checkEmailExists(createClientDto.email);
     const user = await this.clientService.create(createClientDto);
 
-    const token = this.getJwtToken({ email: user.email });
+    const token = this.getJwtToken({ id: user.id });
     return { ...user, token };
   }
 
@@ -33,7 +33,7 @@ export class AuthService {
 
     const { password: _, ...clientWithoutPassword } = userDB;
 
-    const token = this.getJwtToken({ email });
+    const token = this.getJwtToken({ id: userDB.id });
 
     return {
       ...clientWithoutPassword,
