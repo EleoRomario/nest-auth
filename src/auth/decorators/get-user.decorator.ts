@@ -9,6 +9,10 @@ export const GetUser = createParamDecorator((data, ctx: ExecutionContext) => {
 
   const client = request.user;
 
+  if (data) {
+    return client[data];
+  }
+
   if (!client) {
     throw new InternalServerErrorException('No se pudo obtener el usuario');
   }

@@ -24,7 +24,7 @@ export class AuthController {
 
   @Get('private')
   @UseGuards(AuthGuard())
-  testingPrivateRoute(@GetUser() client: Client) {
+  testingPrivateRoute(@GetUser('email') client: Client) {
     console.log(client);
     return client;
   }
