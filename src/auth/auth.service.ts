@@ -4,22 +4,25 @@ import { ClientsService } from 'src/clients/clients.service';
 import { Client } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { CreateClientDto } from 'src/clients/dto/create-client.dto';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private clientService: ClientsService) {}
+  constructor(
+    private readonly clientService: ClientsService,
+    private readonly jwtService: JwtService
+  ) {}
 
-  async register(createClientDto: CreateClientDto): Promise<Omit<Client, 'password'>> {
-    // Verificar si el correo electrónico ya está registrado
+  async register(createClientDto: CreateClientDto) {
     await this.clientService.checkEmailExists(createClientDto.email);
-
-    // Delegar la creación del cliente al servicio de clientes
     const user = await this.clientService.create(createClientDto);
 
-    return user;
+    const token = this.getJwtToken({ email: user.email });
+    return { ...user, token };
   }
 
-  async login(loginDto: LoginClientDto): Promise<Omit<Client, 'password'>> {
+  async login(loginDto: LoginClientDto) {
     const { password, email } = loginDto;
 
     const userDB = await this.clientService.findOneByEmail(email);
@@ -30,6 +33,16 @@ export class AuthService {
 
     const { password: _, ...clientWithoutPassword } = userDB;
 
-    return clientWithoutPassword;
+    const token = this.getJwtToken({ email });
+
+    return {
+      ...clientWithoutPassword,
+      token
+    };
+  }
+
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 }
