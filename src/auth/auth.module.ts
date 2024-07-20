@@ -17,7 +17,6 @@ import { ConfigService } from 'src/config/config.service';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
-        console.log(process.env.JWT_SECRET);
         return {
           secret: configService.jwtSecret,
           signOptions: {
